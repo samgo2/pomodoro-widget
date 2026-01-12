@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pomodoro Widget</title>
+<style>
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0f1115;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .card {
+    width: 520px;
+    height: 260px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.7);
+  }
+
+  .bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('https://i.pinimg.com/1200x/2d/da/48/2dda48be0dbd2cb168e95974a0d70e7e.jpg');
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.7);
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.65));
+  }
+
+  .content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #f3f4f6;
+  }
+
+  .mode {
+    font-size: 14px;
+    letter-spacing: 1px;
+    opacity: 0.85;
+    margin-bottom: -18px;
+  }
+
+  .timer {
+    font-size: 85px;
+    font-weight: 800;
+    margin-bottom: 36px;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .start {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+  }
+
+  .pause {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+  }
+
+  .reset {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+  }
+
+  button:hover {
+    filter: brightness(1.1);
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="bg"></div>
+  <div class="overlay"></div>
+
+  <div class="content">
+    <div class="mode" id="mode">WORK TIME</div>
+    <div class="timer" id="timer">25:00</div>
+
+    <div class="buttons">
+      <button class="start" id="startBtn">Start</button>
+      <button class="pause" id="pauseBtn">Pause</button>
+      <button class="reset" id="resetBtn">Reset</button>
+    </div>
+  </div>
+</div>
+
+<audio id="bgSound" loop>
+  <source src="https://cdn.pixabay.com/audio/2022/10/30/audio_946b5b88b1.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+  const WORK_TIME = 25 * 60;
+  const BREAK_TIME = 5 * 60;
+
+  let timeLeft = WORK_TIME;
+  let isRunning = false;
+  let isPaused = false;
+  let isWork = true;
+  let interval;
+
+  const timerEl = document.getElementById('timer');
+  const modeEl = document.getElementById('mode');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const sound = document.getElementById('bgSound');
+
+  function updateDisplay() {
+    const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+    const secs = String(timeLeft % 60).padStart(2, '0');
+    timerEl.textContent = `${mins}:${secs}`;
+  }
+
+  function tick() {
+    timeLeft--;
+    updateDisplay();
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      isRunning = false;
+      isPaused = false;
+      isWork = !isWork;
+      timeLeft = isWork ? WORK_TIME : BREAK_TIME;
+      modeEl.textContent = isWork ? 'WORK TIME' : 'BREAK TIME';
+      updateDisplay();
+    }
+  }
+
+  function startTimer() {
+    if (isRunning) return;
+    isRunning = true;
+    isPaused = false;
+    sound.volume = 0.25;
+    sound.play();
+    interval = setInterval(tick, 1000);
+  }
+
+  function pauseTimer() {
+    if (!isRunning) return;
+    clearInterval(interval);
+    isRunning = false;
+    isPaused = true;
+    sound.pause();
+  }
+
+  function resetTimer() {
+    clearInterval(interval);
+    isRunning = false;
+    isPaused = false;
+    isWork = true;
+    timeLeft = WORK_TIME;
+    modeEl.textContent = 'WORK TIME';
+    updateDisplay();
+    sound.pause();
+    sound.currentTime = 0;
+  }
+
+  startBtn.addEventListener('click', startTimer);
+  pauseBtn.addEventListener('click', pauseTimer);
+  resetBtn.addEventListener('click', resetTimer);
+
+  updateDisplay();
+</script>
+
+</body>
+</html>
